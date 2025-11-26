@@ -1,4 +1,4 @@
-TOKEN = 'ТОКЕН_ПОСЛЕ_СМЕНЫ'
+TOKEN = '8212876864:AAGvLAUz0tOyZ7f1Q0EDELXFnRHbomHW2hQ'
 ADMIN = 130231824
 SUPPORT = 't.me/paranoiafsb'
 photo_path = 'image.png'
