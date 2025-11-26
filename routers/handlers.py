@@ -18,6 +18,7 @@ tracemalloc.start()
 router = Router()
 photo = FSInputFile(photo_path)
 
+
 # ======= Проверка подписки =======
 async def check_subscription(bot, user_id):
     try:
@@ -37,7 +38,8 @@ class States(StatesGroup):
 
 # ==================== START ====================
 @router.message(CommandStart())
-async def start(message: Message, bot):
+async def start(message: Message):
+    bot = message.bot
     user_id = message.from_user.id
 
     # ---- Проверка подписки ----
@@ -54,7 +56,7 @@ async def start(message: Message, bot):
         )
         return
 
-    # ========== ТВОЙ СТАРЫЙ КОД НИЖЕ НЕ ТРОГАЛ ==========
+    # ---- СТАРЫЙ ФУНКЦИОНАЛ (НЕ ТРОГАЛ) ----
     await checkUser(userid=user_id)
     subStatus = await checkSubStatus(userid=user_id)
 
@@ -65,6 +67,7 @@ async def start(message: Message, bot):
         status = 'Неактивна'
 
     markup = markupAdmin if user_id == ADMIN else markupUser
+
     await message.answer_photo(
         photo=photo,
         caption=(
@@ -78,9 +81,11 @@ async def start(message: Message, bot):
         reply_markup=markup
     )
 
+
 # ==================== Проверка подписки кнопка ====================
 @router.callback_query(F.data == "check_sub")
-async def check_sub(call: CallbackQuery, bot):
+async def check_sub(call: CallbackQuery):
+    bot = call.message.bot
     user_id = call.from_user.id
 
     if not await check_subscription(bot, user_id):
@@ -91,7 +96,7 @@ async def check_sub(call: CallbackQuery, bot):
     await call.message.answer("Подписка подтверждена ✔\nНажмите /start")
 
 
-# ==================== ОСТАЛЬНОЕ — НЕ МЕНЯЛ ====================
+# ==================== ОСТАЛЬНОЕ — БЕЗ ИЗМЕНЕНИЙ ====================
 
 @router.callback_query(F.data == 'snos')
 async def handlerSnos(callback: CallbackQuery, state: FSMContext):
@@ -112,6 +117,7 @@ async def handlerSnos(callback: CallbackQuery, state: FSMContext):
             caption="<b>❌ У вас отсутствует подписка</b>",
             parse_mode=ParseMode.HTML
         )
+
 
 @router.message(States.VIOLATIONLINK)
 async def getViolationLink(message: Message, state: FSMContext):
@@ -136,6 +142,7 @@ async def getViolationLink(message: Message, state: FSMContext):
         parse_mode=ParseMode.HTML
     )
 
+
 @router.callback_query(F.data == 'adminpanel')
 async def handlerAdmin(callback: CallbackQuery):
     await callback.answer()
@@ -146,6 +153,7 @@ async def handlerAdmin(callback: CallbackQuery):
         parse_mode=ParseMode.HTML,
         reply_markup=markupAdminPanel
     )
+
 
 @router.callback_query(F.data == 'giveSub')
 async def handlerGiveSub(callback: CallbackQuery, state: FSMContext):
@@ -158,6 +166,7 @@ async def handlerGiveSub(callback: CallbackQuery, state: FSMContext):
     )
     await state.set_state(States.GIVESUBID)
 
+
 @router.message(States.GIVESUBID)
 async def giveId(message: Message, state: FSMContext):
     user_id = message.text.strip()
@@ -168,6 +177,7 @@ async def giveId(message: Message, state: FSMContext):
         parse_mode=ParseMode.HTML
     )
     await state.set_state(States.GIVESUBDAYS)
+
 
 @router.message(States.GIVESUBDAYS)
 async def giveDays(message: Message, state: FSMContext):
@@ -182,6 +192,7 @@ async def giveDays(message: Message, state: FSMContext):
         parse_mode=ParseMode.HTML
     )
 
+
 @router.callback_query(F.data == 'closeSub')
 async def handlerCloseSub(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -192,6 +203,7 @@ async def handlerCloseSub(callback: CallbackQuery, state: FSMContext):
         parse_mode=ParseMode.HTML
     )
     await state.set_state(States.CLOSESUB)
+
 
 @router.message(States.CLOSESUB)
 async def closeSubscription(message: Message, state: FSMContext):
@@ -211,6 +223,7 @@ async def closeSubscription(message: Message, state: FSMContext):
             parse_mode=ParseMode.HTML
         )
 
+
 @router.callback_query(F.data == 'buySub')
 async def buySubMenu(callback: CallbackQuery):
     await callback.answer()
@@ -221,6 +234,7 @@ async def buySubMenu(callback: CallbackQuery):
         parse_mode=ParseMode.HTML,
         reply_markup=markupBuySub
     )
+
 
 async def handleBuySub(callback: CallbackQuery, amount: float, days: int):
     await callback.answer()
@@ -247,17 +261,21 @@ async def handleBuySub(callback: CallbackQuery, amount: float, days: int):
             parse_mode=ParseMode.HTML
         )
 
+
 @router.callback_query(F.data == 'BuySub3')
 async def buySub3(callback: CallbackQuery):
     await handleBuySub(callback, amount=3.0, days=7)
+
 
 @router.callback_query(F.data == 'BuySub6')
 async def buySub6(callback: CallbackQuery):
     await handleBuySub(callback, amount=6.0, days=30)
 
+
 @router.callback_query(F.data == 'BuySub9')
 async def buySub9(callback: CallbackQuery):
     await handleBuySub(callback, amount=9.0, days=365)
+
 
 @router.callback_query(F.data == 'BuySub15')
 async def buySub15(callback: CallbackQuery):
