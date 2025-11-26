@@ -1,13 +1,13 @@
 from aiogram import Router, F, types
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from config import CHANNEL_INVITE
-from database.users_db import add_user, count_users, subscribe, is_subscribed
+from config import CHANNEL_ID, CHANNEL_INVITE
+from database.users_db import add_user, count_users, subscribe
 
 router = Router()
 
 async def check_subscription(bot, user_id):
     try:
-        member = await bot.get_chat_member(CHANNEL_INVITE, user_id)
+        member = await bot.get_chat_member(CHANNEL_ID, user_id)
         return member.status in ("member", "administrator", "creator")
     except:
         return False
