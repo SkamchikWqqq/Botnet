@@ -9,5 +9,8 @@ API_HASH = '6857117d632b8769bbc507ddb357d52d'
 CRYPTOTOKEN = '403239:AA1REXVjgYxtMRELxI5pFOLLIP5swiri2Ke'
 DIRECTORY = 'sessions'
 
-# Invite-ссылка на закрытый канал
+# ID закрытого канала для проверки подписки
+CHANNEL_ID = -1002415070098  # <- число, берём из настроек канала
+
+# Invite-ссылка на закрытый канал для кнопки
 CHANNEL_INVITE = "https://t.me/+yO5vZ2dUyRE3MzM0"
