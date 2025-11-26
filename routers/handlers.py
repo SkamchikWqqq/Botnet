@@ -8,8 +8,10 @@ router = Router()
 async def check_subscription(bot, user_id):
     try:
         member = await bot.get_chat_member(CHANNEL_ID, user_id)
+        print(f"User {user_id} status: {member.status}")  # лог статуса
         return member.status in ("member", "administrator", "creator")
-    except:
+    except Exception as e:
+        print(f"Error checking subscription: {e}")
         return False
 
 @router.message(F.text == "/start")
