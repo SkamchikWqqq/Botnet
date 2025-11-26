@@ -19,7 +19,6 @@ router = Router()
 photo = FSInputFile(photo_path)
 
 
-# ======= Проверка подписки =======
 async def check_subscription(bot, user_id):
     try:
         member = await bot.get_chat_member(CHANNEL_ID, user_id)
@@ -28,7 +27,6 @@ async def check_subscription(bot, user_id):
         return False
 
 
-# ======= FSM состояния =======
 class States(StatesGroup):
     VIOLATIONLINK = State()
     GIVESUBID = State()
@@ -36,13 +34,11 @@ class States(StatesGroup):
     CLOSESUB = State()
 
 
-# ==================== START ====================
 @router.message(CommandStart())
 async def start(message: Message):
     bot = message.bot
     user_id = message.from_user.id
 
-    # ---- Проверка подписки ----
     if not await check_subscription(bot, user_id):
         kb = types.InlineKeyboardMarkup(
             inline_keyboard=[
@@ -50,21 +46,17 @@ async def start(message: Message):
                 [types.InlineKeyboardButton(text="♻ Проверить", callback_data="check_sub")]
             ]
         )
-        await message.answer(
-            "Чтобы пользоваться ботом — подпишись на канал 👇",
-            reply_markup=kb
-        )
+        await message.answer("Чтобы пользоваться ботом — подпишись на канал 👇", reply_markup=kb)
         return
 
-    # ---- СТАРЫЙ ФУНКЦИОНАЛ (НЕ ТРОГАЛ) ----
     await checkUser(userid=user_id)
     subStatus = await checkSubStatus(userid=user_id)
 
     if subStatus:
         date = await subDate(userid=user_id)
-        status = f'Активна до {date}'
+        status = f"Активна до {date}"
     else:
-        status = 'Неактивна'
+        status = "Неактивна"
 
     markup = markupAdmin if user_id == ADMIN else markupUser
 
@@ -82,7 +74,6 @@ async def start(message: Message):
     )
 
 
-# ==================== Проверка подписки кнопка ====================
 @router.callback_query(F.data == "check_sub")
 async def check_sub(call: CallbackQuery):
     bot = call.message.bot
@@ -96,9 +87,7 @@ async def check_sub(call: CallbackQuery):
     await call.message.answer("Подписка подтверждена ✔\nНажмите /start")
 
 
-# ==================== ОСТАЛЬНОЕ — БЕЗ ИЗМЕНЕНИЙ ====================
-
-@router.callback_query(F.data == 'snos')
+@router.callback_query(F.data == "snos")
 async def handlerSnos(callback: CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     await callback.answer()
@@ -123,13 +112,13 @@ async def handlerSnos(callback: CallbackQuery, state: FSMContext):
 async def getViolationLink(message: Message, state: FSMContext):
     await state.clear()
     link = message.text.strip()
-    start = await message.answer_photo(
+    start_msg = await message.answer_photo(
         photo=photo,
         caption="<b>😶‍🌫️ Начинаю подачу жалоб</b>",
         parse_mode=ParseMode.HTML
     )
     result = await report(link)
-    await start.delete()
+    await start_msg.delete()
     await message.answer_photo(
         photo=photo,
         caption=f"<b>📄 Отчет:\n{result}</b>",
@@ -143,7 +132,7 @@ async def getViolationLink(message: Message, state: FSMContext):
     )
 
 
-@router.callback_query(F.data == 'adminpanel')
+@router.callback_query(F.data == "adminpanel")
 async def handlerAdmin(callback: CallbackQuery):
     await callback.answer()
     await callback.message.delete()
@@ -155,7 +144,7 @@ async def handlerAdmin(callback: CallbackQuery):
     )
 
 
-@router.callback_query(F.data == 'giveSub')
+@router.callback_query(F.data == "giveSub")
 async def handlerGiveSub(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.delete()
@@ -182,18 +171,18 @@ async def giveId(message: Message, state: FSMContext):
 @router.message(States.GIVESUBDAYS)
 async def giveDays(message: Message, state: FSMContext):
     data = await state.get_data()
-    user_id = data.get('userid')
+    user_id = data.get("userid")
     days = message.text.strip()
     await giveSub(user_id, days)
     await state.clear()
     await message.answer_photo(
         photo=photo,
-        caption=f'<b>✅ Подписка пользователю {user_id} выдана</b>',
+        caption=f"<b>✅ Подписка пользователю {user_id} выдана</b>",
         parse_mode=ParseMode.HTML
     )
 
 
-@router.callback_query(F.data == 'closeSub')
+@router.callback_query(F.data == "closeSub")
 async def handlerCloseSub(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.delete()
@@ -224,7 +213,7 @@ async def closeSubscription(message: Message, state: FSMContext):
         )
 
 
-@router.callback_query(F.data == 'buySub')
+@router.callback_query(F.data == "buySub")
 async def buySubMenu(callback: CallbackQuery):
     await callback.answer()
     await callback.message.delete()
@@ -239,15 +228,15 @@ async def buySubMenu(callback: CallbackQuery):
 async def handleBuySub(callback: CallbackQuery, amount: float, days: int):
     await callback.answer()
     await callback.message.delete()
-    userid = callback.from_user.id
-    invoice_url, invoice_id = await createCheck(userid=userid, amount=amount)
+    user_id = callback.from_user.id
+    invoice_url, invoice_id = await createCheck(userid=user_id, amount=amount)
     await callback.message.answer_photo(
         photo=photo,
         caption=f"<b>🧾 Оплатите чек {invoice_url} в течение 60 секунд</b>",
         parse_mode=ParseMode.HTML
     )
     await asyncio.sleep(60)
-    payment_status = await check_payment(user_id=userid, days=days, invoice_id=invoice_id)
+    payment_status = await check_payment(user_id=user_id, days=days, invoice_id=invoice_id)
     if payment_status:
         await callback.message.answer_photo(
             photo=photo,
@@ -262,22 +251,22 @@ async def handleBuySub(callback: CallbackQuery, amount: float, days: int):
         )
 
 
-@router.callback_query(F.data == 'BuySub3')
+@router.callback_query(F.data == "BuySub3")
 async def buySub3(callback: CallbackQuery):
     await handleBuySub(callback, amount=3.0, days=7)
 
 
-@router.callback_query(F.data == 'BuySub6')
+@router.callback_query(F.data == "BuySub6")
 async def buySub6(callback: CallbackQuery):
     await handleBuySub(callback, amount=6.0, days=30)
 
 
-@router.callback_query(F.data == 'BuySub9')
+@router.callback_query(F.data == "BuySub9")
 async def buySub9(callback: CallbackQuery):
     await handleBuySub(callback, amount=9.0, days=365)
 
 
-@router.callback_query(F.data == 'BuySub15')
+@router.callback_query(F.data == "BuySub15")
 async def buySub15(callback: CallbackQuery):
     await handleBuySub(callback, amount=15.0, days=10000)
     
